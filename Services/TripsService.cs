@@ -100,33 +100,28 @@ public class TripsService : ITripsService
 
     try
     {
-        // 1. Проверка: существует ли клиент
         var checkClient = new SqlCommand("SELECT 1 FROM Client WHERE IdClient = @IdClient", conn, tx);
         checkClient.Parameters.AddWithValue("@IdClient", clientId);
         var clientExists = await checkClient.ExecuteScalarAsync();
         if (clientExists == null) return false;
-
-        // 2. Проверка: существует ли поездка
+        
         var checkTrip = new SqlCommand("SELECT MaxPeople FROM Trip WHERE IdTrip = @IdTrip", conn, tx);
         checkTrip.Parameters.AddWithValue("@IdTrip", tripId);
         var maxPeopleObj = await checkTrip.ExecuteScalarAsync();
         if (maxPeopleObj == null) return false;
         int maxPeople = Convert.ToInt32(maxPeopleObj);
-
-        // 3. Проверка: не превышено ли количество записей
+        
         var countCommand = new SqlCommand("SELECT COUNT(*) FROM Client_Trip WHERE IdTrip = @IdTrip", conn, tx);
         countCommand.Parameters.AddWithValue("@IdTrip", tripId);
         int currentCount = (int)await countCommand.ExecuteScalarAsync();
         if (currentCount >= maxPeople) return false;
-
-        // 4. Проверка: уже зарегистрирован?
+        
         var existsCommand = new SqlCommand("SELECT 1 FROM Client_Trip WHERE IdClient = @IdClient AND IdTrip = @IdTrip", conn, tx);
         existsCommand.Parameters.AddWithValue("@IdClient", clientId);
         existsCommand.Parameters.AddWithValue("@IdTrip", tripId);
         var alreadyExists = await existsCommand.ExecuteScalarAsync();
         if (alreadyExists != null) return false;
-
-        // 5. Регистрация
+        
         var insertCommand = new SqlCommand(@"
             INSERT INTO Client_Trip (IdClient, IdTrip, RegisteredAt)
             VALUES (@IdClient, @IdTrip, @Now)", conn, tx);

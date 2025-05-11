@@ -65,7 +65,7 @@ namespace Tutorial8.Controllers
             if (!success)
                 return NotFound("Client is not registered for this trip.");
 
-            return NoContent(); // 204 — успешно, но без тела
+            return NoContent();
         }
 
         
